@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYD → MEL · flightcentre.com.au</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:       #1B6EF3;
+  --blue-light: #EBF3FF;
+  --blue-mid:   #BEDAFF;
+  --navy:       #1A1A2E;
+  --cream:      #F0EDE8;
+  --white:      #fff;
+  --text:       #1A1A2E;
+  --text-2:     #6B7280;
+  --text-3:     #9CA3AF;
+  --border:     #E5E7EB;
+  --border-2:   #D1D5DB;
+  --green:      #059669;
+  --green-bg:   #ECFDF5;
+  --sh-sm:      0 1px 3px rgba(0,0,0,0.07);
+  --sh-md:      0 4px 16px rgba(0,0,0,0.10);
+  --sh-lg:      0 16px 48px rgba(0,0,0,0.16);
+}
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--cream);
+  color: var(--text);
+}
+
+/* ── SEARCH HEADER ── */
+.search-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  justify-content: space-between;
+  gap: 12px;
+}
+.route-block { display: flex; flex-direction: column; gap: 2px; }
+.route-text {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.route-arrow { color: var(--blue); }
+.route-meta { font-size: 13px; color: var(--text-2); }
+.edit-btn {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  background: var(--white);
+  border: 1.5px solid var(--border-2);
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.edit-btn:hover { border-color: var(--text); color: var(--text); }
+
+/* ── MAIN LAYOUT ── */
+.content {
+  min-height: calc(100vh - 64px);
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--cream);
+  padding: 24px 16px;
+}
+.section-lbl {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 12px;
+}
+
+/* ── REC CARDS ── */
+.rec-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+
+.rec-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+  -webkit-tap-highlight-color: transparent;
+}
+.rec-card:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
+.rec-card:active { transform: scale(0.99); }
+.rec-card.best-match {
+  background: var(--blue-light);
+  border: 2px dashed var(--blue);
+}
+.rec-card.best-match:hover { box-shadow: 0 4px 20px rgba(27,110,243,0.18); }
+
+.card-badge {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.badge-match { background: var(--blue); color: #fff; }
+.badge-price { background: var(--navy); color: #fff; }
+
+.card-row { display: flex; align-items: center; gap: 10px; }
+
+.al-dot {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+  border: 1.5px solid var(--border-2); background: #f9f9f9; color: var(--text);
+}
+.al-QF { background:#FFF0F0; border-color:#FECACA; color:#C8102E; }
+.al-JQ { background:#FFF4EE; border-color:#FED7AA; color:#EA580C; }
+.al-VA { background:#EEF2FF; border-color:#C7D2FE; color:#4338CA; }
+.al-RX { background:#F0FDF4; border-color:#BBF7D0; color:#15803D; }
+.al-NZ { background:#FFFBEB; border-color:#FDE68A; color:#92400E; }
+
+.card-times { flex: 1; }
+.card-time-row {
+  font-size: 18px; font-weight: 700; letter-spacing: -0.4px;
+  display: flex; align-items: center; gap: 7px;
+}
+.t-arr { color: var(--text); }
+.t-arrow { color: var(--text-2); font-size: 13px; font-weight: 400; }
+.card-meta { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+.card-price { font-size: 22px; font-weight: 800; letter-spacing: -0.8px; }
+.best-match .card-price { color: var(--blue); }
+
+.card-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
+.chip {
+  font-size: 12px; font-weight: 500;
+  padding: 4px 11px; border-radius: 20px;
+  border: 1px solid var(--border); background: var(--white); color: var(--text);
+}
+.chip-green { background: var(--green-bg); border-color: #A7F3D0; color: #065F46; }
+.best-match .chip { background: rgba(255,255,255,0.72); border-color: var(--blue-mid); }
+
+/* ── PRICE GRAPH ── */
+.graph-section { margin-bottom: 8px; }
+.graph-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.graph-title { font-size: 15px; font-weight: 700; }
+.graph-hint { font-size: 12px; color: var(--text-3); }
+.graph-box {
+  background: var(--white);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  padding: 10px 8px 6px;
+  position: relative;
+}
+.chart-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart-dot { cursor: default; }
+
+/* ── RESULTS SECTION ── */
+.results {
+  background: var(--white);
+  padding: 24px 16px;
+  border-top: 1px solid var(--border);
+}
+.results-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.results-title { font-size: 18px; font-weight: 700; }
+.results-count { font-size: 13px; color: var(--text-2); }
+
+/* Mobile flight rows */
+.m-flight-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px dashed var(--border-2);
+}
+.m-flight-row:last-child { border-bottom: none; }
+.fl-info { flex: 1; }
+.fl-times {
+  font-size: 15px; font-weight: 600;
+  display: flex; align-items: center; gap: 7px; margin-bottom: 2px;
+}
+.fl-meta { font-size: 12px; color: var(--text-2); }
+.fl-price { font-size: 18px; font-weight: 700; letter-spacing: -0.4px; }
+
+/* Desktop flight rows — hidden on mobile */
+.d-flight-row {
+  display: none;
+  grid-template-columns: 52px 1fr 110px 130px 88px;
+  align-items: center; gap: 14px;
+  padding: 13px 12px; border-radius: 10px;
+  border: 1.5px solid transparent; cursor: pointer;
+  transition: all 0.15s; margin-bottom: 3px;
+}
+.d-flight-row:hover { border-color: var(--blue-mid); background: var(--blue-light); }
+.d-flight-row.row-hi { border-color: var(--blue); background: var(--blue-light); }
+.d-al { text-align: center; }
+.d-al .al-dot { margin: 0 auto; }
+.d-al-code { font-size: 11px; color: var(--text-3); text-align: center; margin-top: 2px; }
+.d-name { font-size: 13px; font-weight: 600; }
+.d-times-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.d-time { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+.d-vis { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.d-vis-line {
+  width: 100%; height: 1px; background: var(--border-2); position: relative;
+}
+.d-vis-line::after {
+  content: '▶'; font-size: 7px; color: var(--border-2);
+  position: absolute; right: -4px; top: -5px;
+}
+.d-vis-dur { font-size: 11px; color: var(--text-3); }
+.d-stops { font-size: 13px; color: var(--text-2); text-align: center; }
+.d-stops.direct { color: var(--green); font-weight: 500; }
+.d-price-col { text-align: right; }
+.d-price { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+.d-price-lbl { font-size: 11px; color: var(--text-3); }
+.d-select {
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  color: var(--blue); background: var(--blue-light);
+  border: 1.5px solid var(--blue-mid); border-radius: 8px;
+  padding: 7px 12px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.d-select:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* ── BOTTOM SHEET ── */
+.sheet-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(26,26,46,0.45);
+  z-index: 400; backdrop-filter: blur(2px);
+}
+.sheet-overlay.open { display: block; }
+
+.bottom-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--white);
+  border-radius: 24px 24px 0 0;
+  padding: 0 22px 40px;
+  transform: translateY(100%);
+  transition: transform 0.36s cubic-bezier(0.32,0.72,0,1);
+  z-index: 401;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.14);
+  max-width: 500px;
+  margin: 0 auto;
+}
+.bottom-sheet.open { transform: translateY(0); }
+
+.sheet-handle {
+  width: 40px; height: 4px; background: var(--border-2);
+  border-radius: 2px; margin: 14px auto 20px;
+}
+.sheet-al-row {
+  display: flex; align-items: center; gap: 12px;
+  padding-bottom: 16px; border-bottom: 1px dashed var(--border-2); margin-bottom: 16px;
+}
+.sheet-al-name { font-size: 16px; font-weight: 700; }
+.sheet-al-sub { font-size: 13px; color: var(--text-2); margin-top: 1px; }
+.sheet-route-block {
+  padding: 14px 0; border-bottom: 1px dashed var(--border-2); margin-bottom: 14px;
+}
+.sheet-times-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.sheet-time { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+.sheet-mid { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.sheet-dur { font-size: 12px; color: var(--text-2); font-weight: 500; }
+.sheet-line { width: 100%; height: 1px; background: var(--border-2); position: relative; }
+.sheet-line::after {
+  content: ''; position: absolute; right: -1px; top: -3px;
+  width: 7px; height: 7px;
+  border-top: 1.5px solid var(--border-2); border-right: 1.5px solid var(--border-2);
+  transform: rotate(45deg);
+}
+.sheet-stops-lbl { font-size: 12px; color: var(--text-2); font-weight: 500; }
+.sheet-airports {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text-3); font-weight: 500;
+}
+.sheet-price-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px dashed var(--border-2); margin-bottom: 20px;
+}
+.sheet-baggage { font-size: 13px; color: var(--text-2); }
+.sheet-price { font-size: 26px; font-weight: 800; letter-spacing: -0.8px; }
+.sheet-cta {
+  display: block; width: 100%; padding: 17px;
+  background: var(--navy); color: #fff; border: none; border-radius: 14px;
+  font-family: inherit; font-size: 16px; font-weight: 700;
+  cursor: pointer; text-align: center; margin-bottom: 12px;
+  transition: background 0.15s, transform 0.15s;
+}
+.sheet-cta:hover { background: #2d2d4e; transform: translateY(-1px); }
+.sheet-secondary {
+  display: block; width: 100%; padding: 10px;
+  background: none; color: var(--blue); border: none;
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; text-align: center; transition: color 0.15s;
+}
+.sheet-secondary:hover { color: #0A4ED6; text-decoration: underline; }
+
+/* ── CONFIRMATION ── */
+.confirm-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(26,26,46,0.55); z-index: 500;
+  align-items: center; justify-content: center; padding: 20px;
+}
+.confirm-overlay.show { display: flex; }
+.confirm-card {
+  background: var(--white); border-radius: 24px;
+  padding: 48px 36px; text-align: center; width: 100%; max-width: 360px;
+  box-shadow: var(--sh-lg);
+  animation: popIn 0.28s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popIn { from{transform:scale(0.86);opacity:0} to{transform:scale(1);opacity:1} }
+.confirm-icon {
+  width: 68px; height: 68px; border-radius: 50%; background: var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; color: #fff; margin: 0 auto 20px;
+}
+.confirm-h { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.confirm-p { font-size: 14px; color: var(--text-2); line-height: 1.6; margin-bottom: 28px; }
+.confirm-back {
+  font-family: inherit; font-size: 14px; font-weight: 600; color: var(--text-2);
+  background: var(--cream); border: none; border-radius: 10px;
+  padding: 10px 24px; cursor: pointer; transition: background 0.15s;
+}
+.confirm-back:hover { background: var(--border); }
+
+/* ── TOOLTIP (desktop chart) ── */
+.tip {
+  position: absolute; background: var(--navy); color: #fff;
+  font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 6px;
+  pointer-events: none; white-space: nowrap; opacity: 0; transition: opacity 0.12s; z-index: 50;
+}
+.tip.show { opacity: 1; }
+.tip::after {
+  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-top-color: var(--navy);
+}
+
+/* ── DESKTOP LAYOUT ── */
+@media (min-width: 900px) {
+  .search-header { padding: 0 32px; }
+  .route-text { font-size: 22px; }
+
+  .content {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    align-items: start;
+  }
+
+  .sidebar {
+    padding: 28px 24px;
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    background: #FAFAF9;
+  }
+  .sidebar::-webkit-scrollbar { display: none; }
+
+  .results {
+    padding: 28px 28px;
+    border-top: none;
+    background: var(--white);
+    min-height: calc(100vh - 64px);
+  }
+
+  /* Hide mobile rows, show desktop rows on large screens */
+  .m-flight-row { display: none; }
+  .d-flight-row { display: grid; }
+
+  /* Chart dots are hoverable on desktop */
+  .chart-dot { cursor: pointer; }
+
+  .graph-hint::before { content: 'hover a dot to highlight → '; }
+  .graph-hint-text { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Search header -->
+<header class="search-header">
+  <div class="route-block">
+    <div class="route-text">SYD <span class="route-arrow">→</span> MEL</div>
+    <div class="route-meta">Tue 4 Jun · 1 adult · Economy</div>
+  </div>
+  <button class="edit-btn">Edit search</button>
+</header>
+
+<!-- Main content -->
+<main class="content">
+
+  <!-- Sidebar: cards + graph -->
+  <aside class="sidebar">
+    <div class="section-lbl">Picked for you</div>
+    <div class="rec-cards">
+      <div class="rec-card best-match" id="cardMatch" onclick="handleCardClick(7)">
+        <div class="card-badge badge-match">Best match</div>
+        <div class="card-row">
+          <div class="al-dot al-QF">QF</div>
+          <div class="card-times">
+            <div class="card-time-row">6:00a <span class="t-arrow">→</span> <span class="t-arr">7:30a</span></div>
+            <div class="card-meta">Direct · 1h 30m</div>
+          </div>
+          <div class="card-price">$389</div>
+        </div>
+        <div class="card-chips">
+          <span class="chip chip-green">Direct</span>
+          <span class="chip">Arrives midday</span>
+          <span class="chip">On time 92%</span>
+        </div>
+      </div>
+      <div class="rec-card" id="cardPrice" onclick="handleCardClick(2)">
+        <div class="card-badge badge-price">Best price</div>
+        <div class="card-row">
+          <div class="al-dot al-JQ">JQ</div>
+          <div class="card-times">
+            <div class="card-time-row">11:15a <span class="t-arrow">→</span> <span class="t-arr">1:45p</span></div>
+            <div class="card-meta">Direct · 1h 30m</div>
+          </div>
+          <div class="card-price">$274</div>
+        </div>
+        <div class="card-chips">
+          <span class="chip">Saves $115</span>
+          <span class="chip chip-green">Direct</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="graph-section">
+      <div class="graph-hdr">
+        <span class="graph-title">Price graph</span>
+        <span class="graph-hint graph-hint-text">price by departure time</span>
+      </div>
+      <div class="graph-box">
+        <div class="tip" id="chartTip"></div>
+        <div id="priceChart"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Results -->
+  <section class="results">
+    <div class="results-hdr">
+      <h2 class="results-title">All flights</h2>
+      <span class="results-count">24 results · sorted by price</span>
+    </div>
+    <div id="flightList"></div>
+  </section>
+
+</main>
+
+<!-- Bottom sheet overlay -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+
+<!-- Bottom sheet -->
+<div class="bottom-sheet" id="bottomSheet">
+  <div class="sheet-handle"></div>
+  <div id="sheetContent"></div>
+  <button class="sheet-cta" onclick="showConfirm()">Select this flight</button>
+  <button class="sheet-secondary" onclick="closeSheet()">Compare with Best match</button>
+</div>
+
+<!-- Confirmation -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-card">
+    <div class="confirm-icon">✓</div>
+    <div class="confirm-h">You're nearly there!</div>
+    <div class="confirm-p">Taking you to checkout to complete your SYD → MEL booking.</div>
+    <button class="confirm-back" onclick="closeConfirm()">← Back to results</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────────────────
+const FLIGHTS = [
+  { id:1, code:'RX', name:'RexAir',          fn:'RX823', dep:'2:15p', arr:'4:55p', dur:'2h 40m', stops:'1 stop · BNE', price:245, depMin:855,  ac:'Fokker 100'  },
+  { id:2, code:'JQ', name:'Jetstar',          fn:'JQ823', dep:'11:15a',arr:'1:45p', dur:'1h 30m', stops:'Direct',      price:274, depMin:675,  ac:'Boeing 787'  },
+  { id:3, code:'JQ', name:'Jetstar',          fn:'JQ824', dep:'9:20a', arr:'11:55a',dur:'1h 35m', stops:'Direct',      price:289, depMin:560,  ac:'Airbus A320' },
+  { id:4, code:'VA', name:'Virgin Australia', fn:'VA823', dep:'6:35a', arr:'8:10a', dur:'1h 35m', stops:'Direct',      price:298, depMin:395,  ac:'Boeing 737'  },
+  { id:5, code:'QF', name:'Qantas',           fn:'QF823', dep:'7:00a', arr:'8:30a', dur:'1h 30m', stops:'Direct',      price:312, depMin:420,  ac:'Boeing 737'  },
+  { id:6, code:'VA', name:'Virgin Australia', fn:'VA825', dep:'10:05a',arr:'11:45a',dur:'1h 40m', stops:'Direct',      price:324, depMin:605,  ac:'Boeing 737'  },
+  { id:7, code:'QF', name:'Qantas',           fn:'QF821', dep:'6:00a', arr:'7:30a', dur:'1h 30m', stops:'Direct',      price:389, depMin:360,  ac:'Boeing 737'  },
+  { id:8, code:'NZ', name:'Air New Zealand',  fn:'NZ823', dep:'4:20p', arr:'6:00p', dur:'1h 40m', stops:'Direct',      price:402, depMin:980,  ac:'Airbus A320' },
+  { id:9, code:'QF', name:'Qantas',           fn:'QF829', dep:'5:15p', arr:'6:55p', dur:'1h 40m', stops:'Direct',      price:421, depMin:1035, ac:'Boeing 737'  },
+];
+
+const BY_DEP = [...FLIGHTS].sort((a,b) => a.depMin - b.depMin);
+
+// ── CHART ────────────────────────────────────────────────────────────────────
+// viewBox 0 0 340 170  |  plot: x36–330 (w294), y14–144 (h130)
+const PX=36, PY=14, PW=294, PH=130;
+const cxF = m  => PX + (m - 360) / 900 * PW;
+const cyF = p  => PY + (1 - (p - 245) / 176) * PH;
+
+function buildChart() {
+  const pts = BY_DEP.map(f => ({ x: cxF(f.depMin), y: cyF(f.price), f }));
+  const lineD = pts.map((p,i) => `${i===0?'M':'L'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const areaD = `M${pts[0].x.toFixed(1)} ${PY+PH} L${pts.map(p=>`${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' L')} L${pts[pts.length-1].x.toFixed(1)} ${PY+PH}Z`;
+  const ticks = [{l:'6a',m:360},{l:'9a',m:540},{l:'12p',m:720},{l:'4p',m:960},{l:'9p',m:1260}];
+
+  let s = `<svg class="chart-svg" viewBox="0 0 340 170" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#1B6EF3" stop-opacity="0.13"/>
+    <stop offset="100%" stop-color="#1B6EF3" stop-opacity="0.01"/>
+  </linearGradient></defs>
+  <text x="${PX-2}" y="${PY+7}" text-anchor="end" font-size="9.5" fill="#9CA3AF" font-family="Inter,sans-serif">$$$</text>
+  <text x="${PX-2}" y="${PY+PH}" text-anchor="end" font-size="9.5" fill="#9CA3AF" font-family="Inter,sans-serif">$</text>
+  <path d="${areaD}" fill="url(#ag)"/>
+  <path d="${lineD}" fill="none" stroke="#1B6EF3" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  ${ticks.map(t=>`<text x="${cxF(t.m).toFixed(1)}" y="${PY+PH+14}" text-anchor="middle" font-size="9.5" fill="#9CA3AF" font-family="Inter,sans-serif">${t.l}</text>`).join('\n  ')}`;
+
+  pts.forEach(p => {
+    const isM = p.f.id===7, isP = p.f.id===2;
+    const rO = (isM||isP)?7:5, rI = (isM||isP)?3:2;
+    const sc = isM?'#1B6EF3': isP?'#1A1A2E':'#93C5FD';
+    s += `\n  <g class="chart-dot" data-id="${p.f.id}">
+    <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${rO+3}" fill="transparent"/>
+    <circle class="dot-outer" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${rO}" fill="#fff" stroke="${sc}" stroke-width="1.8"/>
+    <circle class="dot-inner" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${rI}" fill="${sc}"/>`;
+    if (isM) s += `\n    <text x="${p.x.toFixed(1)}" y="${(p.y+18).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="#1B6EF3" font-weight="600" font-family="Inter,sans-serif">Best match ★</text>`;
+    if (isP) s += `\n    <text x="${p.x.toFixed(1)}" y="${(p.y+18).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="#1A1A2E" font-weight="600" font-family="Inter,sans-serif">Best price  $</text>`;
+    s += '\n  </g>';
+  });
+  s += '\n</svg>';
+  document.getElementById('priceChart').innerHTML = s;
+
+  // Desktop: hover dot → highlight row
+  document.querySelectorAll('.chart-dot').forEach(dot => {
+    const fid = parseInt(dot.dataset.id);
+    const fl  = FLIGHTS.find(f=>f.id===fid);
+    dot.addEventListener('mouseenter', () => {
+      if (window.innerWidth < 900) return;
+      hiRow(fid, true);
+      const oc = dot.querySelector('.dot-outer'), ic = dot.querySelector('.dot-inner');
+      oc.setAttribute('r','9'); ic.setAttribute('r','5');
+      showTip(dot, `${fl.dep} · $${fl.price}`);
+    });
+    dot.addEventListener('mouseleave', () => {
+      if (window.innerWidth < 900) return;
+      hiRow(fid, false);
+      const isSpec = fid===7||fid===2;
+      dot.querySelector('.dot-outer').setAttribute('r', isSpec?'7':'5');
+      dot.querySelector('.dot-inner').setAttribute('r', isSpec?'3':'2');
+      hideTip();
+    });
+  });
+}
+
+// ── FLIGHT LIST ──────────────────────────────────────────────────────────────
+function buildList() {
+  document.getElementById('flightList').innerHTML = FLIGHTS.map(f => `
+    <div class="m-flight-row">
+      <div class="al-dot al-${f.code}">${f.code}</div>
+      <div class="fl-info">
+        <div class="fl-times">${f.dep} <span style="color:#9CA3AF;font-size:11px">→</span> ${f.arr}</div>
+        <div class="fl-meta">${f.stops} · ${f.dur}</div>
+      </div>
+      <div class="fl-price">$${f.price}</div>
+    </div>
+    <div class="d-flight-row" id="dr${f.id}"
+         onmouseenter="hiDot(${f.id},true)" onmouseleave="hiDot(${f.id},false)">
+      <div class="d-al">
+        <div class="al-dot al-${f.code}">${f.code}</div>
+        <div class="d-al-code">${f.fn}</div>
+      </div>
+      <div>
+        <div class="d-name">${f.name}</div>
+        <div class="d-times-row">
+          <span class="d-time">${f.dep}</span>
+          <div class="d-vis"><div class="d-vis-line"></div><div class="d-vis-dur">${f.dur}</div></div>
+          <span class="d-time">${f.arr}</span>
+        </div>
+      </div>
+      <div class="d-stops ${f.stops==='Direct'?'direct':''}">${f.stops}</div>
+      <div class="d-price-col">
+        <div class="d-price">$${f.price}</div>
+        <div class="d-price-lbl">per adult</div>
+      </div>
+      <button class="d-select" onclick="showConfirm()">Select</button>
+    </div>`).join('');
+}
+
+// ── INTERACTIONS ─────────────────────────────────────────────────────────────
+function handleCardClick(flightId) {
+  const fl = FLIGHTS.find(f => f.id === flightId);
+  if (window.innerWidth < 900) {
+    openSheet(fl);
+  } else {
+    showConfirm();
+  }
+}
+
+function openSheet(fl) {
+  document.getElementById('sheetContent').innerHTML = `
+    <div class="sheet-al-row">
+      <div class="al-dot al-${fl.code}">${fl.code}</div>
+      <div>
+        <div class="sheet-al-name">${fl.name} · ${fl.fn}</div>
+        <div class="sheet-al-sub">Economy · ${fl.ac}</div>
+      </div>
+    </div>
+    <div class="sheet-route-block">
+      <div class="sheet-times-row">
+        <div class="sheet-time">${fl.dep}</div>
+        <div class="sheet-mid">
+          <div class="sheet-dur">${fl.dur}</div>
+          <div class="sheet-line"></div>
+          <div class="sheet-stops-lbl">${fl.stops}</div>
+        </div>
+        <div class="sheet-time">${fl.arr}</div>
+      </div>
+      <div class="sheet-airports"><span>SYD</span><span>MEL</span></div>
+    </div>
+    <div class="sheet-price-row">
+      <div class="sheet-baggage">${fl.stops==='Direct'?'Carry-on + 1 checked bag':'Carry-on only'}</div>
+      <div class="sheet-price">$${fl.price}</div>
+    </div>`;
+  document.getElementById('sheetOverlay').classList.add('open');
+  document.getElementById('bottomSheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSheet() {
+  document.getElementById('sheetOverlay').classList.remove('open');
+  document.getElementById('bottomSheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function showConfirm() {
+  closeSheet();
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+}
+
+function hiRow(id, on) {
+  const r = document.getElementById('dr'+id);
+  if (r) { r.classList.toggle('row-hi', on); if(on) r.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+}
+
+function hiDot(id, on) {
+  if (window.innerWidth < 900) return;
+  const dot = document.querySelector(`.chart-dot[data-id="${id}"]`);
+  if (!dot) return;
+  const isSpec = id===7||id===2;
+  if (on) {
+    dot.querySelector('.dot-outer').setAttribute('r','9');
+    dot.querySelector('.dot-inner').setAttribute('r','5');
+  } else {
+    dot.querySelector('.dot-outer').setAttribute('r', isSpec?'7':'5');
+    dot.querySelector('.dot-inner').setAttribute('r', isSpec?'3':'2');
+  }
+}
+
+function showTip(el, txt) {
+  const tip = document.getElementById('chartTip');
+  tip.textContent = txt; tip.classList.add('show');
+  const er = el.getBoundingClientRect(), pr = tip.offsetParent?.getBoundingClientRect()||{top:0,left:0};
+  tip.style.left = (er.left - pr.left + er.width/2 - tip.offsetWidth/2) + 'px';
+  tip.style.top  = (er.top  - pr.top  - 36) + 'px';
+}
+function hideTip() { document.getElementById('chartTip').classList.remove('show'); }
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+buildChart();
+buildList();
+</script>
+</body>
+</html>
